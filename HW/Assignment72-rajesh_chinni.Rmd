@@ -1,0 +1,136 @@
+---
+title: "Assignment72-rajesh_chinni"
+output: html_document
+---
+
+```{r}
+studenteval = read.delim('evals.CSV', sep = ',')
+studenteval
+```
+
+```{r}
+# 1. Describe the distribution of score . Is the distribution skewed? What does that tell you about how students
+# rate courses? Is this what you expected to see? Why, or why not?
+hist(studenteval$score)
+mean.displ=mean(studenteval$score)
+median.displ=median(studenteval$score)
+skewness_displ=3*(mean.displ-median.displ)/sd(studenteval$score)
+skewness_displ
+# It is negatively skewed.Majority of the students rated morethan 4 for the professors.
+```
+
+```{r}
+#2- Excluding score , select two other variables and describe their relationship using an appropriate
+#visualization (scatterplot or side-by-side boxplots).
+plot(cls_did_eval~cls_students, data = studenteval)
+cor(studenteval$cls_did_eval,studenteval$cls_students)
+# since correlation is not zero, there is linear association between 2 variables.
+```
+
+```{r}
+plot( studenteval$bty_avg ~ studenteval$bty_f1lower )
+cor ( studenteval$bty_avg,studenteval$bty_f1lower )
+```
+
+```{r}
+plot(studenteval[, 13 : 19 ])
+```
+
+```{r}
+m_bty_gen = lm ( score ~ bty_avg + gender , data = studenteval )
+summary ( m_bty_gen )
+
+```
+
+```{r}
+# 3-Is bty_avg still a significant predictor of score ? Has the addition of gender to the model changed the
+# parameter estimate for bty_avg ?
+# yes bty_avg is a significant predictor since it has 3 stars. Addition of gender has changed the paramter for #estimate as we need to add 0.17239 for the score if the gender of the professor is male. Also gender predictor has 3 #starts and it is significant.
+```
+
+```{r}
+# 4. What is the equation of the line corresponding to males? (Hint: For males, the parameter estimate is
+#multiplied by 1.) For two professors who received the same beauty rating, which gender tends to have the
+#higher course evaluation score?
+
+# For two professors who received the same beauty rating, male tend to have higher score as the equation for male is #score = 3.74 + bty_avg*0.07 + 0.17239. But for female, the eqaution for  score = 3.74 + bty_avg*0.07
+```
+
+```{r}
+# 5 -Create a new model called m_bty_rank with gender removed and rank added in. How does R appear to
+#handle categorical variables that have more than two levels? Note that the rank variable has three levels:
+#teaching, tenure track, tenured.
+
+m_bty_rank = lm ( score ~ bty_avg + rank , data = studenteval )
+summary ( m_bty_rank )
+
+# If the professor rank is teaching then the equation is score = 3.98 + bty_avg*0.067. However, if the professor is #tenure track then score = 3.98 + bty_avg*0.067 - 0.16 and for tenured professor, the  score = 3.98 + bty_avg*0.067 - #0.12.
+# linear modelling(score ~ bty_avg + rank) shows how much higher a professor can score if they have a beauty #rating #that is one point higher while holding all other variables constant. 
+
+```
+
+```{r}
+# 6 - The interpretation of the coefficients in multiple regression is slightly different from that of simple #regression.The estimate for bty_avg reflects how much higher a group of professors is expected to score if they have
+#a beauty rating that is one point higher w hile holding all other variables constant. In this case, that
+#translates into considering only professors of the same rank with bty_avg scores that are one point apart.
+```
+
+
+
+```{r}
+# 7-Which variable would you expect to have the highest p-value in this model? Why? Hint: Think about which
+# variable would you expect to not have any association with the professor score
+# I expect color of outfit of professor in picture(i.e, pic_outfitnot) variable  to not have any association with the #professor score.The reason being no student evaluates professor based on the outfit in the picture.
+m_full = lm ( score ~ rank + ethnicity + gender + language + age + cls_perc_eval + cls_students + cls_level + cls_profs + cls_credits + bty_avg + pic_outfit + pic_color , data = studenteval )
+summary (m_full )
+
+```
+
+```{r}
+#8- Check your suspicions from the previous exercise. Include the model output in your response.
+# I was wrong. In reality, cls_profs  has the least association to "scores" as it has highest p-value.
+```
+
+```{r}
+#9- Interpret the coefficient associated with the ethnicity variable.
+# Its p-value is 0.116 and it has no stars. This means that it is not a strong factor for professor's score.
+```
+
+```{r}
+#10. Drop the variable with the highest p-value and refit the model. Did the coefficients and significance of the
+#other explanatory variables change? (One of the things that makes multiple regression interesting is that
+#coefficient estimates depend on the other variables that are included in the model.) If not, what does this say
+#about whether or not the dropped variable was collinear with the other explanatory variables?
+
+# Since cls_profs has highest p-value, i am dropping that.
+m_full1 = lm ( score ~ rank + ethnicity + gender + language + age + cls_perc_eval + cls_students + cls_level + cls_credits + bty_avg + pic_outfit + pic_color , data = studenteval )
+summary (m_full1 )
+# There was minute change in the coefficients and significance of the other explanatory variables after dropping #cls_profs.
+```
+
+```{r}
+# 11-Using backward-selection and p-value as the selection criterion, determine the best model. You do not need
+#to show all steps in your answer, just the output for the final model. Also, write out the linear model for
+#predicting score based on the final model you settle on.
+
+m_full2 <- lm(score ~ ethnicity + gender + language + age + cls_perc_eval + 
+    cls_credits + bty_avg + pic_color, data = studenteval)
+summary(m_full2)
+# Score =  3.771922 + ethnicitynot minority* 0.167872 + gendermale*0.207112 - languagenon-english*0.206178 - #age*0.006046 + cls_perc_eval* 0.004656 + cls_creditsone credit*0.505306 + bty_avg*0.051069 - pic_colorcolor*0.190579
+```
+
+```{r}
+#12 - Verify that the conditions for this model are reasonable using diagnostic plots.
+plot(m_full2)
+# A - Residuals vs Fitted
+# The dotted line at y=0 indicates our fit line.Any point on fit line obviously has zero residual. Points above have positive residuals and points below have negative residuals.
+
+# B - Normal Q-Q Plot
+# The Normal Q-Q plot is used to check if our residuals follow Normal distribution or not.
+#The residuals are normally distributed if the points follow the dotted line closely
+# Since the residual points follow the dotted line closely so our model residuals have passed the test of Normality.
+
+# C- Scale - Location Plot
+# A horizontal red line is ideal and would indicate that residuals have uniform variance across the range. Since ours #is close to horizontal, i think its ideal.
+```
+
